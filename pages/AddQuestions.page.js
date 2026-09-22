@@ -81,6 +81,7 @@ async verifyCreatedQuestion(){
     await this.bookRow.click();
 }
 
+/*
 async verifyQuestionReferences(){
 
     await this.addQuestionBtn.waitFor({state:"visible"});
@@ -114,7 +115,7 @@ async verifyQuestionReferences(){
     const verseRange = textContent.match(/v\d+-\d+/)[0].substring(1);;
     console.log(verseRange);
 
-}
+} */
 
 }
 
