@@ -24,7 +24,7 @@ class OpenProject{
 
 async openProject(){
 
-          await this.page.goto("/");
+await this.page.goto("/");
 
 await this.connectProjectHeading.waitFor();
 
@@ -35,6 +35,7 @@ await this.page.locator("mat-card").filter({hasText:'  - EnglishToTamil '}).clic
 await this.page.locator("span.project-name").waitFor({state:"visible",timeout:15000});
 
 await expect(this.page.locator("div.tab-header-content ").filter({hasText:' ETL '})).toHaveText('book ETL ');
+
 }
 
 
