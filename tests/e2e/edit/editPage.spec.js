@@ -1,11 +1,7 @@
-const{test,expect}=require('../../../fixtures/baseTest');
+const{test,expect}=require('../../../fixtures/projectHooks');
 
-test('Adding text on edit page',async({homePage,editPage})=>{
+test('Adding text on edit page',async({homePage,editPage,connectedProject})=>{
 
-    await homePage.openProject();
-
-    await editPage.addTextToBook(5);
-
-
+    await editPage.addTextToBook(5,"Numbers");
 
 })

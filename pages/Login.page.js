@@ -38,6 +38,8 @@ constructor(page){
     await this.loginBtn.waitFor({ state: 'visible' });
   }
   async verifyLoggedIn() {
+    await this.page.waitForURL(/projects/,{timeout:35000});
+    await this.myProjectsHeader.waitFor({state:'visible',timeout:35000});
     await expect(this.myProjectsHeader).toHaveText('My projects');
   }
 }

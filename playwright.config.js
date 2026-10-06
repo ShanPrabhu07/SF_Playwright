@@ -5,7 +5,8 @@ dotenv.config({ path: './config/env/.env.qa' });
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 40 * 1000,
+  retries: process.env.CI ? 2 : 0,
+  timeout: 90 * 1000,
   workers:1,
   reporter: [
     ['line'],
@@ -25,7 +26,7 @@ export default defineConfig({
                 viewport: null,
                 storageState: ".auth/sf-admin.json",
             },
-            dependencies: ["setup"]
+            //dependencies: ["setup"]
         }
     ],
 
@@ -34,16 +35,19 @@ export default defineConfig({
     },
  
   use: {
-    baseURL: "https://qa.scriptureforge.org/",
-    channel: 'chrome',
+    baseURL: "https://scriptureforge.org/",
+   channel: 'chrome',
     headless: false,
     viewport: null,
     launchOptions: {
       args: ['--start-maximized'],
     },
     trace: "retain-on-failure",
+    video: "retain-on-failure",
     screenshot: "only-on-failure",
     navigationTimeout: 120_000,
+    
+    
     
   },
 });

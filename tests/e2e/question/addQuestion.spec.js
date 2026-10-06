@@ -1,8 +1,6 @@
-const { test } = require("../../../fixtures/baseTest");
+const { test } = require("../../../fixtures/projectHooks");
 
-test("Add a Question", async ({ homePage, questionsPage }) => {
-  /* connecting the project, login is handled by setup project */
-  await homePage.openProject();
+test("Add a Question", async ({ homePage, questionsPage, connectedProject }) => {
 
   /* adding questions */
   await questionsPage.managePageClick();
