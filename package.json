@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "allure:serve": "allure serve allure-results",
+    "allure:zip": "powershell -Command \"Compress-Archive -Path allure-report -DestinationPath allure-report.zip -Force\""
   },
   "keywords": [],
   "author": "",
@@ -11,7 +15,9 @@
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/node": "^22.20.3"
+    "@types/node": "^22.20.3",
+    "allure-commandline": "^2.46.1",
+    "allure-playwright": "^3.12.2"
   },
   "dependencies": {
     "dotenv": "^17.4.2"
