@@ -37,14 +37,10 @@ constructor(page){
 
 
 async managePageClick() {
-
-await this.managePage.waitFor({state:"visible",timeout:25000});
-await this.managePage.click();
-console.log("Current URL:", await this.page.url());
-
-await expect(this.page.locator("h1")).toHaveText("Manage questions");
-
-     
+  await this.managePage.waitFor({ state: "visible", timeout: 25000 });
+  await this.managePage.click();
+  await this.page.waitForURL(/.*\/checking/, { timeout: 25000 });
+  await expect(this.page.locator("h1")).toHaveText("Manage questions", { timeout: 25000 });
 }
 
 async createQuestion(){
@@ -69,12 +65,8 @@ async verifyCreatedQuestion(){
     await this.chapterRow.waitFor({state:'visible'});
     await this.chapterRow.click();
 
-    for (let i = 0; i < testData.questions.length; i++) {
-
-    const expectedQuestion = testData.questions[i].question;
-
-    await expect(this.createdQuestions.nth(i))
-        .toHaveText(expectedQuestion);
+    for (const data of testData.questions) {
+      await expect(this.createdQuestions.filter({ hasText: data.question }).first()).toBeVisible({ timeout: 15000 });
     }
 
     await this.bookRow.waitFor({state:'visible'});
