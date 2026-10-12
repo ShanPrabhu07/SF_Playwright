@@ -1,5 +1,5 @@
 const {test,expect}=require("@playwright/test");
-const testData=require("../data/question.json")
+
 
 class AddQuestion{
 
@@ -43,9 +43,9 @@ async managePageClick() {
   await expect(this.page.locator("h1")).toHaveText("Manage questions", { timeout: 25000 });
 }
 
-async createQuestion(){
+async createQuestion(questionsList){
 
-     for (const data of testData.questions) {
+     for (const data of questionsList) {
 
     await this.addQuestionBtn.waitFor({state:"visible"});
     await this.addQuestionBtn.click();
@@ -58,14 +58,14 @@ async createQuestion(){
      }
 }
 
-async verifyCreatedQuestion(){
+async verifyCreatedQuestion(questionsList){
 
     await this.bookRow.waitFor({state:'visible'});
     await this.bookRow.click();
     await this.chapterRow.waitFor({state:'visible'});
     await this.chapterRow.click();
 
-    for (const data of testData.questions) {
+    for (const data of questionsList) {
       await expect(this.createdQuestions.filter({ hasText: data.question }).first()).toBeVisible({ timeout: 15000 });
     }
 

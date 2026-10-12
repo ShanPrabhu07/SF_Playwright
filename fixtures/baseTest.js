@@ -1,23 +1,9 @@
 ﻿const base = require('@playwright/test');
-const OpenProject = require('../pages/OpenProject.page');
-const AddQuestions = require('../pages/AddQuestions.page');
-
-const test = base.test.extend({
-  // OpenProject (Home) Page Fixture
-  homePage: async ({ page }, use) => {
-    const homePage = new OpenProject(page);
-    await use(homePage);
-  },
-
-  // AddQuestions Page Fixture
-  questionsPage: async ({ page }, use) => {
-    const questionsPage = new AddQuestions(page);
-    await use(questionsPage);
-const base = require('@playwright/test');
 const LoginPage = require('../pages/Login.page');
 const OpenProject = require('../pages/OpenProject.page');
 const AddQuestions = require('../pages/AddQuestions.page');
-const EditPage=require("../pages/EditPage.page");
+const EditPage = require('../pages/EditPage.page');
+const chapterAudio= require("../pages/ChapterAudio.page");
 
 
 const test = base.test.extend({
@@ -38,6 +24,23 @@ const test = base.test.extend({
     await use(new EditPage(page));
 
   },
+
+  chapterAudio: async({page},use)=>{
+    await use(new chapterAudio(page))
+  },
+
+  // connect and delete project for each spec/test files
+ connectedProject: async ({ homePage }, use) => {
+    await homePage.openProject();
+    try {
+      await use();
+    } finally {
+      // Safe teardown: only delete if workspace exists
+      await homePage.deleteProject().catch(err => console.warn('Teardown cleanup skipped:', err.message));
+    }
+  }, 
+
+  
 
 });
 

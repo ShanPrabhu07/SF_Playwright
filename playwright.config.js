@@ -1,13 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config({ path: './config/env/.env.qa' });
+const environment = process.env.ENV || 'qa';
+dotenv.config({path:path.resolve(__dirname,`config/env/.env.${environment}`)})
 
 export default defineConfig({
   testDir: './tests',
   retries: process.env.CI ? 2 : 0,
   timeout: 90 * 1000,
-  workers:1,
+  workers: 1,
   reporter: [
     ['line'],
     ['html', { outputFolder: 'playwright-report' }],
@@ -26,7 +28,7 @@ export default defineConfig({
                 viewport: null,
                 storageState: ".auth/sf-admin.json",
             },
-            //dependencies: ["setup"]
+           // dependencies: ["setup"]
         }
     ],
 
@@ -35,7 +37,7 @@ export default defineConfig({
     },
  
   use: {
-    baseURL: "https://scriptureforge.org/",
+      baseURL: process.env.BASE_URL || 'https://qa.scriptureforge.org/',
    channel: 'chrome',
     headless: false,
     viewport: null,
