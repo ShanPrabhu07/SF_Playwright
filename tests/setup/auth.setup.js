@@ -1,4 +1,4 @@
-const {test}= require('../../fixtures/baseTest')
+const {test}= require('../../fixtures/baseTest');
 
 test("authenticate as admin", async ({ page,loginPage }) => {
 
@@ -9,5 +9,5 @@ test("authenticate as admin", async ({ page,loginPage }) => {
 
     await page.context().storageState({
         path: ".auth/sf-admin.json"
-    });
-});
+    })
+})

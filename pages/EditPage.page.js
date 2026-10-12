@@ -12,8 +12,13 @@ constructor(page){
     this.bookList = page.getByRole("listbox");
     //this.selectBook= page.getByRole("option").filter({hasText:"Numbers"});
     this.verse1=page.locator('[data-segment="verse_1_1"]');
+    this.SF_NoteIcon=page.getByText("add_comment");
+    this.SF_NoteDialog=page.locator("[id*='mat-mdc-dialog-ng-cli-universal']");
+    this.SF_CommentField= page.locator("[id*='mat-input-ng-cli-universal']");
+    this.SF_SaveBtn=page.getByText('Save');
 
 }
+
 
 async addTextToBook(verseCount,bookName){
 
@@ -49,6 +54,31 @@ async addTextToBook(verseCount,bookName){
         await expect(verseLocator).toContainText(`verse${i} data`);
         console.log(`Verse ${i} content after reload:`, await verseLocator.textContent());
     }
+}
+
+async addSF_Note(bookName){
+
+    await this.page.getByRole('link', { name: 'Edit & review' }).click();
+    await this.page.waitForLoadState('networkidle');
+
+    // Select Book
+    await this.bookDropdown.waitFor({state:"visible", timeout:15000});
+    await this.bookDropdown.click({force:true});
+    await this.bookList.waitFor({state:"visible",timeout:25000});
+    await this.page.getByRole("option").filter({hasText:bookName}).click();
+
+    //Add SF note
+
+    await this.verse1.click();
+    await this.SF_NoteIcon.click();
+    await expect(this.SF_NoteDialog).toBeVisible();
+   // await this.SF_CommentField.click();
+    await this.SF_CommentField.fill("Test");
+    await this.SF_SaveBtn.click();
+
+
+
+
 }
 
 

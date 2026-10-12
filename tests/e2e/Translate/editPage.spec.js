@@ -1,4 +1,4 @@
-const{test,expect}=require('../../../fixtures/projectHooks');
+const { test, expect } = require('../../../fixtures/baseTest');
 
 test('Adding text on edit page',async({homePage,editPage,connectedProject})=>{
 
