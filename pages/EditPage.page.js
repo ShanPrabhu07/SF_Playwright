@@ -12,10 +12,22 @@ constructor(page){
     this.bookList = page.getByRole("listbox");
     //this.selectBook= page.getByRole("option").filter({hasText:"Numbers"});
     this.verse1=page.locator('[data-segment="verse_1_1"]');
-    this.SF_NoteIcon=page.getByText("add_comment");
+
+    //Add SF Note Selectors
+    this.SF_AddCmtIcon=page.getByText("add_comment");
     this.SF_NoteDialog=page.locator("[id*='mat-mdc-dialog-ng-cli-universal']");
     this.SF_CommentField= page.locator("[id*='mat-input-ng-cli-universal']");
     this.SF_SaveBtn=page.getByText('Save');
+
+    //Edit SF Note selectors
+    this.SF_NoteIcon=page.locator("display-note");
+    this.editBtn=page.locator(".edit-button");
+
+    //Delete SF Note selectors
+
+    this.deleteBtn=page.locator(".delete-button");
+    this.deleteDialog=page.getByRole("heading",{level:2});
+    this.deleteBtnInDialog=page.locator("button.mat-mdc-unelevated-button");
 
 }
 
@@ -70,7 +82,7 @@ async addSF_Note(bookName){
     //Add SF note
 
     await this.verse1.click();
-    await this.SF_NoteIcon.click();
+    await this.SF_AddCmtIcon.click();
     await expect(this.SF_NoteDialog).toBeVisible();
    // await this.SF_CommentField.click();
     await this.SF_CommentField.fill("Test");
@@ -78,6 +90,30 @@ async addSF_Note(bookName){
 
 
 
+
+}
+
+async editSF_Note(){
+
+    await expect(this.SF_NoteIcon).toBeVisible();
+    await this.SF_NoteIcon.click();
+    await expect(this.SF_NoteDialog).toBeVisible();
+    await this.editBtn.click();
+    await this.SF_CommentField.click();
+    await this.SF_CommentField.clear();
+    await this.SF_CommentField.fill("Edited text");
+     await this.SF_SaveBtn.click();
+
+}
+
+async deleteSF_Note(){
+
+    await this.SF_NoteIcon.click();
+    await expect(this.SF_NoteDialog).toBeVisible();
+    await this.deleteBtn.click();
+    await expect(this.deleteDialog).toHaveText("Permanently delete this comment?");
+    await this.deleteBtnInDialog.click();
+    await expect(this.SF_NoteIcon).toBeHidden();
 
 }
 
