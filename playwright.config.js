@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 const environment = process.env.ENV || 'qa';
-dotenv.config({path:path.resolve(__dirname,`config/env/.env.${environment}`)})
+dotenv.config({ path: path.resolve(__dirname, `config/env/.env.${environment}`) });
 
 export default defineConfig({
   testDir: './tests',
@@ -16,42 +16,35 @@ export default defineConfig({
     ['allure-playwright', { outputFolder: 'allure-results' }],
   ],
 
-     projects: [
-        {
-            name: "setup",
-            testMatch: /auth\.setup\.js/,
-        },
-
-        {
-            name: "chromium",
-            use: {
-                viewport: null,
-                storageState: ".auth/sf-admin.json",
-            },
-         dependencies: ["setup"]
-        }
-    ],
-
-    expect:{
-      timeout:40*1000,
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.js/,
     },
- 
+    {
+      name: 'chromium',
+      use: {
+        storageState: '.auth/sf-admin.json',
+      },
+      dependencies: ['setup'],
+    },
+  ],
+
+  expect: {
+    timeout: 40 * 1000,
+  },
+
   use: {
-      baseURL: process.env.BASE_URL || 'https://qa.scriptureforge.org/',
-   channel: 'chrome',
+    baseURL: process.env.BASE_URL || 'https://qa.scriptureforge.org/',
+    channel: process.env.CI ? undefined : 'chrome',
     headless: process.env.CI ? true : false,
-    //headless: false,
-    viewport: null,
+    viewport: process.env.CI ? { width: 1920, height: 1080 } : null,
     launchOptions: {
-      args: ['--start-maximized'],
+      args: process.env.CI ? [] : ['--start-maximized'],
     },
-    trace: "retain-on-failure",
-    video: "on",
-    screenshot: "only-on-failure",
+    trace: 'retain-on-failure',
+    video: 'on',
+    screenshot: 'only-on-failure',
     navigationTimeout: 120_000,
-    
-    
-    
   },
 });
-
