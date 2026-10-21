@@ -19,8 +19,14 @@ class OpenProject {
 
   }
 
+    getConnectBtn(projectName){
+
+      return this.page.locator(".user-unconnected-project").filter({ has: this.page.locator(".project-name b", { hasText:projectName})}).
+      getByRole("link",{name:"Connect"});
+    }
+
       
-  async openProject() {
+  async openProject(projectName=process.env.SF_PROJECT_NAME || 'ETL') {
 
     await this.page.goto('/');
 
@@ -28,9 +34,11 @@ class OpenProject {
 
     await expect(this.notConnectedProjects).toHaveText('Not connected');
 
-    await this.connectButton.waitFor({ state: 'visible', timeout: 30000 });
+    const connectBtn=this.getConnectBtn(projectName);
 
-    await this.connectButton.click();
+    await connectBtn.waitFor({ state: 'visible', timeout: 30000 });
+
+    await connectBtn.click();
    
     await this.connectPage.waitFor({state:"visible",timeout:30000});
 
@@ -47,7 +55,7 @@ class OpenProject {
 
   }
 
-  async deleteProject(){
+  async deleteProject(confirmName=process.env.SF_PROJECT_DELETE_CONFIRM || 'EnglishToTamil'){
 
     await this.settings.click();
 
@@ -57,7 +65,7 @@ class OpenProject {
 
     await this.projectTextBox.click();
 
-    await this.projectTextBox.fill("EnglishToTamil");
+    await this.projectTextBox.fill(confirmName);
 
     await this.deleteProjectBtn.click();
 

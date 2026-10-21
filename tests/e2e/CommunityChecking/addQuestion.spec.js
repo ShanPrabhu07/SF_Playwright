@@ -11,7 +11,15 @@ test("Add a Question", async ({ homePage,connectedProject,questionsPage }) => {
   /* verify created question */
   await questionsPage.verifyCreatedQuestion(testData.questions);
 
-  /* Add a question and verify the reference */
-  // await questionsPage.verifyQuestion References();
+ 
+});
+
+test("verify the question reference",async({homePage,connectedProject,questionsPage})=>{
+
+  await questionsPage.managePageClick();
+
+   /* Add a question and verify the reference */
+   await questionsPage.verifyQuestionReferences();
+
 });
 

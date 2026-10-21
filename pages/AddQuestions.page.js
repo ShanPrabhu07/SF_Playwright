@@ -1,5 +1,6 @@
 const {test,expect}=require("@playwright/test");
-
+const path = require("path");
+const fs = require("fs");
 
 class AddQuestion{
 
@@ -33,6 +34,11 @@ constructor(page){
     this.ruthBookRow=page.locator("div#text-with-questions-list mat-expansion-panel-header").filter({hasText:"Ruth"}).first();
     this.ruthChapterRow=page.locator("div#text-with-questions-list mat-expansion-panel-header").filter({hasText:"Ruth"}).last();
     this.textContent = page.locator("div.flex").first();
+
+    //export
+
+    this.exportBtn=page.locator("#export-btn");
+    
 }
 
 
@@ -54,7 +60,7 @@ async createQuestion(questionsList){
     await this.questionBox.click();
     await this.questionBox.fill(data.question);
     await this.saveBtn.click();
-    
+    await this.saveBtn.waitFor({ state: "hidden", timeout: 15000 });
      }
 }
 
@@ -73,7 +79,7 @@ async verifyCreatedQuestion(questionsList){
     await this.bookRow.click();
 }
 
-/*
+
 async verifyQuestionReferences(){
 
     await this.addQuestionBtn.waitFor({state:"visible"});
@@ -107,7 +113,59 @@ async verifyQuestionReferences(){
     const verseRange = textContent.match(/v\d+-\d+/)[0].substring(1);;
     console.log(verseRange);
 
-} */
+} 
+
+async exportBtnNotVisible(){
+
+  await expect(this.exportBtn).toBeHidden();
+}    
+
+async exportBtnVisible(){
+
+   await expect(this.exportBtn).toBeVisible({ timeout: 15000 });
+}
+
+async exportAndVerifyQuestionFile(projectCode = process.env.SF_PROJECT_NAME || 'ETL', expectedQuestions = []) {
+    // 1. Set up download listener BEFORE clicking the export button
+    const downloadPromise = this.page.waitForEvent('download', { timeout: 30000 });
+    await this.exportBtn.click();
+    const download = await downloadPromise;
+
+    // 2. Validate filename pattern (e.g. ETL_questions_2026-10-19_1230.csv)
+    const fileName = download.suggestedFilename();
+    const expectedPattern = new RegExp(`^${projectCode}_questions_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.csv$`);
+    expect(fileName).toMatch(expectedPattern);
+
+    
+    // 3. Ensure the downloads directory exists and save the file
+    const downloadDir = path.resolve(__dirname, '../test-results/downloads');
+    if (!fs.existsSync(downloadDir)) {
+      fs.mkdirSync(downloadDir, { recursive: true });
+    }
+    const savedFilePath = path.join(downloadDir, fileName);
+    await download.saveAs(savedFilePath);
+
+    // 4. Verify file exists on disk and is not empty (size > 0 bytes)
+    expect(fs.existsSync(savedFilePath)).toBeTruthy();
+    const stats = fs.statSync(savedFilePath);
+    expect(stats.size).toBeGreaterThan(0);
+    
+    // 5. Verify CSV content contains header and the exported questions
+    if (expectedQuestions && expectedQuestions.length > 0) {
+      const fileContent = fs.readFileSync(savedFilePath, 'utf-8');
+      
+      // Explicitly verify the CSV header row
+      expect(fileContent).toContain("Reference,Question");
+
+      // Verify each question (trimmed to prevent whitespace mismatches)
+      for (const item of expectedQuestions) {
+        expect(fileContent).toContain(item.question.trim());
+      }
+    }
+    console.log(`Successfully verified downloaded file: ${fileName} (${stats.size} bytes)`);
+    return savedFilePath;
+  }
+
 
 }
 

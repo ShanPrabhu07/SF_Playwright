@@ -3,8 +3,8 @@ const LoginPage = require('../pages/Login.page');
 const OpenProject = require('../pages/OpenProject.page');
 const AddQuestions = require('../pages/AddQuestions.page');
 const EditPage = require('../pages/EditPage.page');
-const chapterAudio= require("../pages/ChapterAudio.page");
-
+const ChapterAudio= require("../pages/ChapterAudio.page");
+const UsersPage=require("../pages/Users.page");
 
 const test = base.test.extend({
  
@@ -26,7 +26,11 @@ const test = base.test.extend({
   },
 
   chapterAudio: async({page},use)=>{
-    await use(new chapterAudio(page))
+    await use(new ChapterAudio(page))
+  },
+
+  usersPage:async({page},use)=>{
+    await use(new UsersPage(page))
   },
 
   // connect and delete project for each spec/test files

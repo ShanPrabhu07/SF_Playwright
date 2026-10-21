@@ -29,6 +29,29 @@ constructor(page){
     this.deleteDialog=page.getByRole("heading",{level:2});
     this.deleteBtnInDialog=page.locator("button.mat-mdc-unelevated-button");
 
+    //History tab
+
+    this.addtabBtn=page.locator("#source app-tab-header[aria-haspopup='menu']");
+    this.historyBtn=page.locator("Button").filter({hasText:"History"});
+    this.historyTab=page.locator(".closeable.movable");
+    this.historyDropdown=page.locator("[panelclass='history-select-panel']");
+    this.previousVersion=page.locator("[role='listbox'] mat-option").nth(1);
+    this.restoreThisVersionBtn=page.locator(".revert-history");
+    this.restoreDialog=page.getByRole("heading",{level:2});
+    this.restoreBtn=page.getByRole("button",{name:"Restore", exact: true});
+    this.snackBar=page.locator("simple-snack-bar");
+
+    //Resource tab
+
+    this.resourceBtn=page.locator("Button").filter({hasText:"Resource..."});
+    this.resourceDialog=page.locator("app-editor-tab-add-resource-dialog h1");
+    this.resourceInput=page.locator("[placeholder='Project or resource']");
+    this.resourceList=page.locator("mat-optgroup mat-option").nth(1);
+    this.selectBtn=page.getByRole("button",{name:"Select",exact:true});
+    this.resourceTab=page.locator("#source app-tab-header").filter({hasText:" DHH94 "});
+
+
+
 }
 
 
@@ -53,7 +76,12 @@ async addTextToBook(verseCount,bookName){
         await this.page.keyboard.type(`verse${i} data `);
     }
 
-    // Wait for ShareDB WebSocket debounced auto-save to commit to the server
+   
+}
+
+async verifyAddedText(){
+
+     // Wait for ShareDB WebSocket debounced auto-save to commit to the server
     await this.page.waitForTimeout(3000);
 
     // Reload page to verify persistence from server
@@ -66,6 +94,7 @@ async addTextToBook(verseCount,bookName){
         await expect(verseLocator).toContainText(`verse${i} data`);
         console.log(`Verse ${i} content after reload:`, await verseLocator.textContent());
     }
+
 }
 
 async addSF_Note(bookName){
@@ -117,6 +146,45 @@ async deleteSF_Note(){
 
 }
 
+async addHistorytab(verseCount){
+
+    await this.addtabBtn.click();
+    await this.historyBtn.click();
+    await expect(this.historyTab).toBeVisible();
+    await this.historyDropdown.click();
+    await this.previousVersion.click();
+    await expect(this.restoreThisVersionBtn).toBeVisible();
+    await this.restoreThisVersionBtn.click();
+    await expect(this.restoreDialog).toHaveText("Are you sure you want to restore this chapter to the selected revision?");
+    await this.restoreBtn.click();
+
+    await expect(this.snackBar).toHaveText("Successfully restored previous version");
+    await this.page.reload();
+    await this.page.waitForLoadState('networkidle');
+
+      for (let i = 1; i <= verseCount; i++) {
+        const verseLocator = this.page.locator(`#target-text-area [data-segment="verse_1_${i}"]`);
+        await expect(verseLocator).toContainText(` `);
+        console.log(`Verse ${i} content after reload:`, await verseLocator.textContent());
+    }
+
+
+}
+
+async addResourceTab(){
+
+     await this.addtabBtn.click();
+     await this.resourceBtn.click();
+     await expect(this.resourceDialog).toHaveText("Open Resource Tab");
+     await this.resourceInput.click();
+     await this.resourceInput.type("DHH94");
+     await this.resourceList.click();
+   //  await expect(this.resourceInput).toHaveText("DHH94 - Spanish: Dios Habla Hoy DC Edición Estándar");
+     await this.selectBtn.click();
+     await expect(this.resourceTab).toBeVisible();
+
+
+}
 
 }
 

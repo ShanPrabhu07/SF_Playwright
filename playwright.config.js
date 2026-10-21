@@ -28,7 +28,7 @@ export default defineConfig({
                 viewport: null,
                 storageState: ".auth/sf-admin.json",
             },
-           // dependencies: ["setup"]
+         dependencies: ["setup"]
         }
     ],
 
@@ -39,13 +39,14 @@ export default defineConfig({
   use: {
       baseURL: process.env.BASE_URL || 'https://qa.scriptureforge.org/',
    channel: 'chrome',
-    headless: false,
+    headless: process.env.CI ? true : false,
+    //headless: false,
     viewport: null,
     launchOptions: {
       args: ['--start-maximized'],
     },
     trace: "retain-on-failure",
-    video: "retain-on-failure",
+    video: "on",
     screenshot: "only-on-failure",
     navigationTimeout: 120_000,
     

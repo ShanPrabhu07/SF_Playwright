@@ -1,6 +1,7 @@
 const {test,expect}= require("@playwright/test");
+ const path= require('path');
 
-class chapterAudio{
+class ChapterAudio{
 
 
 constructor(page){
@@ -24,6 +25,9 @@ constructor(page){
 
 async QApageClick(){
 
+   const audioPath=path.resolve(__dirname,'../data/chapterAudio/ETU-RUT-001.mp3');
+   const timingPath=path.resolve(__dirname,'../data/chapterAudio/ETU-RUT-001.txt')
+
     await this.QAPage.click();
 
     //Add chapter audio
@@ -32,8 +36,8 @@ async QApageClick(){
     await this.saveBtn.click();
     await expect(this.audioFile).toHaveCSS('border-color','rgb(147, 0, 10)');
     await expect(this.timingFile).toHaveCSS('border-color','rgb(147, 0, 10)');
-    await this.browseFile.setInputFiles("C:/Users/Prabhu/Documents/Sound recordings/ETU-RUT-001.mp3");
-    await this.browseFile.setInputFiles("C:/Users/Prabhu/Documents/Sound recordings/ETU-RUT-001.txt");
+    await this.browseFile.setInputFiles(audioPath,timingPath);
+    //await this.browseFile.setInputFiles(timingPath);
     await expect(this.audioPlayerInDialog).toBeVisible();
     await this.saveBtn.click();
     await expect (this.chapterDialog).toBeHidden();
@@ -57,4 +61,4 @@ async QApageClick(){
 
 }
 
-module.exports=chapterAudio;
+module.exports=ChapterAudio;
