@@ -1,46 +1,54 @@
-const {expect} = require('@playwright/test');
+const { expect } = require('@playwright/test');
 
-class LoginPage{
-
-constructor(page){
-
-    this.page=page;
+class LoginPage {
+  constructor(page) {
+    this.page = page;
 
     this.loginBtn = page.getByText('Log In').first();
     this.loginWithParatextBtn = page.getByText('Log in with Paratext');
-    
+
     this.emailInput = page.locator('#email');
     this.loginSubmitBtn = page.locator('button.login-button').first();
-    this.passwordInput = page.locator('#password input');
-    this.nextBtn = page.getByText('Next').first();
+    this.passwordInput = page.locator('input[type="password"]');
+    this.nextBtn = page.getByRole('button', { name: 'Next' });
     this.errorMessage = page.locator('.error-message, .alert-danger, [role="alert"]');
-    
+
     this.myProjectsHeader = page.locator('.content h1');
     this.userAvatarBtn = page.locator('button img[alt], button .avatar').first();
     this.logoutBtn = page.getByText('Log Out');
   }
+
   async goto() {
     await this.page.goto('/');
   }
+
   async loginWithParatext(email, password) {
     await this.loginBtn.click();
     await this.loginWithParatextBtn.click();
     await this.emailInput.fill(email);
     await this.loginSubmitBtn.click();
+
+    // Google Sign-In: Email step 'Next'
     await this.nextBtn.waitFor({ state: 'visible', timeout: 35000 });
     await this.nextBtn.click();
+
+    // Google Sign-In: Password step
+    await this.passwordInput.waitFor({ state: 'visible', timeout: 35000 });
     await this.passwordInput.fill(password);
     await this.nextBtn.click();
   }
+
   async logout() {
     await this.userAvatarBtn.click();
     await this.logoutBtn.click();
     await this.loginBtn.waitFor({ state: 'visible' });
   }
+
   async verifyLoggedIn() {
-    await this.page.waitForURL(/projects/,{timeout:35000});
-    await this.myProjectsHeader.waitFor({state:'visible',timeout:35000});
+    await this.page.waitForURL(/projects/, { timeout: 60000 });
+    await this.myProjectsHeader.waitFor({ state: 'visible', timeout: 35000 });
     await expect(this.myProjectsHeader).toHaveText('My projects');
   }
 }
+
 module.exports = LoginPage;
