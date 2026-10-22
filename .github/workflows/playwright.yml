@@ -28,6 +28,14 @@ jobs:
       - name: Install Playwright Browsers & OS Dependencies
         run: npx playwright install --with-deps chromium
 
+      - name: Restore Auth Storage State
+        if: ${{ secrets.SF_STORAGE_STATE != '' }}
+        run: |
+          mkdir -p .auth
+          echo "$SF_STORAGE_STATE" > .auth/sf-admin.json
+        env:
+          SF_STORAGE_STATE: ${{ secrets.SF_STORAGE_STATE }}
+
       - name: Run Playwright Tests
         env:
           CI: true
