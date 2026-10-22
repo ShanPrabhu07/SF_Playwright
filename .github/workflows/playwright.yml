@@ -29,10 +29,14 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Restore Auth Storage State
-        if: ${{ secrets.SF_STORAGE_STATE != '' }}
         run: |
-          mkdir -p .auth
-          echo "$SF_STORAGE_STATE" > .auth/sf-admin.json
+          if [ -n "$SF_STORAGE_STATE" ]; then
+            mkdir -p .auth
+            echo "$SF_STORAGE_STATE" > .auth/sf-admin.json
+            echo "Successfully restored auth session from secret."
+          else
+            echo "SF_STORAGE_STATE secret not set. Skipping restoration."
+          fi
         env:
           SF_STORAGE_STATE: ${{ secrets.SF_STORAGE_STATE }}
 
