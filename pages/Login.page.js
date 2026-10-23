@@ -1,4 +1,5 @@
 const { expect } = require('@playwright/test');
+const OTPAuth = require('otpauth');
 
 class LoginPage {
   constructor(page) {
@@ -11,7 +12,9 @@ class LoginPage {
     this.loginSubmitBtn = page.locator('button.login-button').first();
     this.passwordInput = page.locator('input[type="password"]');
     this.nextBtn = page.getByRole('button', { name: 'Next' });
-    this.errorMessage = page.locator('.error-message, .alert-danger, [role="alert"]');
+
+    // Google 2FA Authenticator Code Input
+    this.totpInput = page.locator('input[type="tel"], #totpPin, input[name="totpPin"]');
 
     this.myProjectsHeader = page.locator('.content h1');
     this.userAvatarBtn = page.locator('button img[alt], button .avatar').first();
@@ -28,20 +31,33 @@ class LoginPage {
     await this.emailInput.fill(email);
     await this.loginSubmitBtn.click();
 
-    // Google Sign-In: Email step 'Next'
+    // 1. Google Email step
     await this.nextBtn.waitFor({ state: 'visible', timeout: 35000 });
     await this.nextBtn.click();
 
-    // Google Sign-In: Password step
+    // 2. Google Password step
     await this.passwordInput.waitFor({ state: 'visible', timeout: 35000 });
     await this.passwordInput.fill(password);
     await this.nextBtn.click();
-  }
 
-  async logout() {
-    await this.userAvatarBtn.click();
-    await this.logoutBtn.click();
-    await this.loginBtn.waitFor({ state: 'visible' });
+    // 3. Google 2FA Step (if prompted)
+    if (process.env.SF_TOTP_SECRET) {
+      try {
+        await this.totpInput.waitFor({ state: 'visible', timeout: 10000 });
+
+        // Generate the live 6-digit TOTP code
+        const totp = new OTPAuth.TOTP({
+          secret: process.env.SF_TOTP_SECRET.replace(/\s+/g, ''),
+        });
+        const token = totp.generate();
+
+        console.log(`Generated TOTP 2FA code: ${token}`);
+        await this.totpInput.fill(token);
+        await this.nextBtn.click();
+      } catch (e) {
+        // 2FA prompt was not shown (already trusted or skipped)
+      }
+    }
   }
 
   async verifyLoggedIn() {

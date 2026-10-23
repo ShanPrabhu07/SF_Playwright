@@ -7,9 +7,14 @@ on:
     branches: [ main, master ]
   workflow_dispatch: # Allows you to manually trigger the test from the GitHub website
 
+# Cancel previous running builds when new code is pushed to prevent queue bottlenecks
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
-    timeout-minutes: 60
+    timeout-minutes: 30
     runs-on: ubuntu-latest
 
     steps:
@@ -46,6 +51,7 @@ jobs:
           BASE_URL: ${{ secrets.BASE_URL || 'https://qa.scriptureforge.org/' }}
           SF_EMAIL: ${{ secrets.SF_EMAIL }}
           SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
+          SF_TOTP_SECRET: ${{ secrets.SF_TOTP_SECRET }}
           SF_PROJECT_NAME: ${{ secrets.SF_PROJECT_NAME || 'ETL' }}
           SF_PROJECT_DELETE_CONFIRM: ${{ secrets.SF_PROJECT_DELETE_CONFIRM || 'EnglishToTamil' }}
         run: npx playwright test

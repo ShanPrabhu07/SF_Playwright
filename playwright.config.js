@@ -7,8 +7,8 @@ dotenv.config({ path: path.resolve(__dirname, `config/env/.env.${environment}`) 
 
 export default defineConfig({
   testDir: './tests',
-  retries: process.env.CI ? 2 : 0,
-  timeout: 90 * 1000,
+  retries: process.env.CI ? 0 : 0, // 0 retries in CI for fast feedback (no 10-minute retry stalls)
+  timeout: 45 * 1000, // 45 seconds timeout per test
   workers: 1,
   reporter: [
     ['line'],
@@ -31,7 +31,7 @@ export default defineConfig({
   ],
 
   expect: {
-    timeout: 40 * 1000,
+    timeout: 30 * 1000,
   },
 
   use: {
@@ -45,6 +45,6 @@ export default defineConfig({
     trace: 'retain-on-failure',
     video: 'on',
     screenshot: 'only-on-failure',
-    navigationTimeout: 120_000,
+    navigationTimeout: 60_000,
   },
 });
