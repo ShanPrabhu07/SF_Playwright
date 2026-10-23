@@ -10,7 +10,7 @@ class LoginPage {
 
     this.emailInput = page.locator('#email');
     this.loginSubmitBtn = page.locator('button.login-button').first();
-    this.passwordInput = page.locator('input[type="password"]');
+    this.passwordInput = page.locator('#password input[type="password"]');
     this.nextBtn = page.getByRole('button', { name: 'Next' });
 
     // Google 2FA Authenticator Code Input
@@ -43,19 +43,56 @@ class LoginPage {
     // 3. Google 2FA Step (if prompted)
     if (process.env.SF_TOTP_SECRET) {
       try {
-        await this.totpInput.waitFor({ state: 'visible', timeout: 10000 });
+        // Wait briefly to see if Google routes to a challenge page or directly to Scripture Forge
+        await this.page.waitForURL(/challenge|projects/i, { timeout: 15000 }).catch(() => {});
 
-        // Generate the live 6-digit TOTP code
-        const totp = new OTPAuth.TOTP({
-          secret: process.env.SF_TOTP_SECRET.replace(/\s+/g, ''),
-        });
-        const token = totp.generate();
+        if (this.page.url().includes('challenge')) {
+          // Check if we are already on the Authenticator TOTP challenge screen
+          const isAuthenticatorChallenge = this.page.url().includes('/challenge/totp') ||
+            await this.page.getByText(/authenticator/i).first().isVisible({ timeout: 2000 }).catch(() => false);
 
-        console.log(`Generated TOTP 2FA code: ${token}`);
-        await this.totpInput.fill(token);
-        await this.nextBtn.click();
+          if (!isAuthenticatorChallenge) {
+            const authOption = this.page.getByText(/authenticator/i).first();
+            const tryAnotherWay = this.page.getByRole('button', { name: /try another way/i })
+              .or(this.page.locator('button:has-text("Try another way"), div[role="button"]:has-text("Try another way")'))
+              .or(this.page.getByText('Try another way'));
+
+            if (await authOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+              console.log('Selecting Google Authenticator option...');
+              await authOption.click();
+            } else if (await tryAnotherWay.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+              console.log('Clicking "Try another way" to switch to Google Authenticator...');
+              await tryAnotherWay.first().click();
+              try {
+                await authOption.waitFor({ state: 'visible', timeout: 8000 });
+                await authOption.click();
+              } catch {
+                console.warn('Warning: "Google Authenticator" was not listed under "Try another way".');
+              }
+            }
+          }
+
+          // Locate the TOTP pin input on the Authenticator challenge screen
+          const pinInput = this.page.locator('input[type="tel"], #totpPin, input[name="totpPin"]').first();
+          await pinInput.waitFor({ state: 'visible', timeout: 15000 });
+
+          // Generate the live 6-digit TOTP code
+          const totp = new OTPAuth.TOTP({
+            secret: process.env.SF_TOTP_SECRET.replace(/\s+/g, ''),
+          });
+          const token = totp.generate();
+          console.log(`Generated TOTP 2FA code: ${token}`);
+
+          await pinInput.fill(token);
+
+          // Click Next
+          const nextButton = this.page.getByRole('button', { name: 'Next' })
+            .or(this.page.locator('#totpNext button, #totpNext, button[type="button"]:has-text("Next")'))
+            .first();
+          await nextButton.click();
+        }
       } catch (e) {
-        // 2FA prompt was not shown (already trusted or skipped)
+        console.log('2FA handling notice:', e.message);
       }
     }
   }
