@@ -35,13 +35,17 @@ jobs:
 
       - name: Restore Auth Storage State
         run: |
-          if [ -n "$SF_STORAGE_STATE" ]; then
-            mkdir -p .auth
-            echo "$SF_STORAGE_STATE" > .auth/sf-admin.json
-            echo "Successfully restored auth session from secret."
-          else
-            echo "SF_STORAGE_STATE secret not set. Skipping restoration."
-          fi
+          node -e '
+            const fs = require("fs");
+            const state = process.env.SF_STORAGE_STATE;
+            if (state && state.trim().length > 10) {
+              fs.mkdirSync(".auth", { recursive: true });
+              fs.writeFileSync(".auth/sf-admin.json", state.trim());
+              console.log("Successfully restored auth session from secret (bytes: " + state.length + ").");
+            } else {
+              console.log("SF_STORAGE_STATE secret not set or empty. Skipping restoration.");
+            }
+          '
         env:
           SF_STORAGE_STATE: ${{ secrets.SF_STORAGE_STATE }}
 
