@@ -10,8 +10,8 @@ class LoginPage {
 
     this.emailInput = page.locator('#email');
     this.loginSubmitBtn = page.locator('button.login-button').first();
-    this.passwordInput = page.locator('#password input[type="password"]');
-    this.nextBtn = page.getByRole('button', { name: 'Next' });
+    this.passwordInput = page.locator('input[type="password"], input[name="Passwd"]');
+    this.nextBtn = page.getByRole('button', { name: 'Next' }).or(page.locator('#passwordNext button, #identifierNext button, #totpNext button'));
 
     // Google 2FA Authenticator Code Input
     this.totpInput = page.locator('input[type="tel"], #totpPin, input[name="totpPin"]');
