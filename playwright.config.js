@@ -1,6 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
-import dotenv from 'dotenv';
-import path from 'path';
+import { defineConfig, devices } from '@playwright/test';  
+import dotenv from 'dotenv'; 
+import path from 'path';  
 
 const environment = process.env.ENV || 'qa';
 dotenv.config({ path: path.resolve(__dirname, `config/env/.env.${environment}`) });

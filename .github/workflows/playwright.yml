@@ -37,13 +37,34 @@ jobs:
         run: |
           node -e '
             const fs = require("fs");
-            const state = process.env.SF_STORAGE_STATE;
+            let state = process.env.SF_STORAGE_STATE;
             if (state && state.trim().length > 10) {
-              fs.mkdirSync(".auth", { recursive: true });
-              fs.writeFileSync(".auth/sf-admin.json", state.trim());
-              console.log("Successfully restored auth session from secret (bytes: " + state.length + ").");
+              state = state.trim();
+              // Check if base64 encoded
+              if (!state.startsWith("{") && !state.startsWith("[") && state.length > 50) {
+                try {
+                  const decoded = Buffer.from(state, "base64").toString("utf8");
+                  if (decoded.startsWith("{") || decoded.startsWith("[")) {
+                    state = decoded;
+                    console.log("Decoded SF_STORAGE_STATE from Base64 successfully.");
+                  }
+                } catch (e) {
+                  // Not base64, proceed with raw string
+                }
+              }
+              try {
+                const parsed = JSON.parse(state);
+                const cookieCount = parsed.cookies ? parsed.cookies.length : 0;
+                const originCount = parsed.origins ? parsed.origins.length : 0;
+                fs.mkdirSync(".auth", { recursive: true });
+                fs.writeFileSync(".auth/sf-admin.json", JSON.stringify(parsed, null, 2));
+                console.log(`Successfully restored auth session from secret (${state.length} bytes, ${cookieCount} cookies, ${originCount} origins).`);
+              } catch (parseErr) {
+                console.error("ERROR: SF_STORAGE_STATE secret could not be parsed as valid JSON: " + parseErr.message);
+                process.exit(1);
+              }
             } else {
-              console.log("SF_STORAGE_STATE secret not set or empty. Skipping restoration.");
+              console.warn("WARNING: SF_STORAGE_STATE secret is not set or empty. Fresh login will be attempted.");
             }
           '
         env:

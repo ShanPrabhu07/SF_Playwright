@@ -43,53 +43,60 @@ class LoginPage {
     // 3. Google 2FA Step (if prompted)
     if (process.env.SF_TOTP_SECRET) {
       try {
-        // Wait briefly to see if Google routes to a challenge page or directly to Scripture Forge
-        await this.page.waitForURL(/challenge|projects/i, { timeout: 15000 }).catch(() => {});
+        // Wait for either Google Challenge/account page or direct redirect to Scripture Forge
+        await this.page.waitForURL(/challenge|projects|accounts\.google\.com/i, { timeout: 25000 }).catch(() => {});
 
-        if (this.page.url().includes('challenge')) {
-          // Check if we are already on the Authenticator TOTP challenge screen
-          const isAuthenticatorChallenge = this.page.url().includes('/challenge/totp') ||
-            await this.page.getByText(/authenticator/i).first().isVisible({ timeout: 2000 }).catch(() => false);
+        // If we are still on Google accounts domain and not on /projects
+        if (this.page.url().includes('accounts.google.com') && !this.page.url().includes('/projects')) {
+          console.log('Google 2FA challenge detected. URL:', this.page.url());
 
-          if (!isAuthenticatorChallenge) {
-            const authOption = this.page.getByText(/authenticator/i).first();
-            const tryAnotherWay = this.page.getByRole('button', { name: /try another way/i })
-              .or(this.page.locator('button:has-text("Try another way"), div[role="button"]:has-text("Try another way")'))
-              .or(this.page.getByText('Try another way'));
+          // Check if TOTP pin input is already visible
+          const pinLocator = this.page.locator('input[type="tel"], #totpPin, input[name="totpPin"], input#idvPin').first();
+          let isPinVisible = await pinLocator.isVisible({ timeout: 4000 }).catch(() => false);
 
-            if (await authOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-              console.log('Selecting Google Authenticator option...');
-              await authOption.click();
-            } else if (await tryAnotherWay.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-              console.log('Clicking "Try another way" to switch to Google Authenticator...');
-              await tryAnotherWay.first().click();
-              try {
-                await authOption.waitFor({ state: 'visible', timeout: 8000 });
-                await authOption.click();
-              } catch {
-                console.warn('Warning: "Google Authenticator" was not listed under "Try another way".');
-              }
+          // If PIN input is not visible, Google likely presented the "Check your phone" (Device Prompt) screen
+          if (!isPinVisible) {
+            console.log('PIN input not visible yet. Checking for "Try another way" to select Authenticator...');
+
+            // Look for "Try another way"
+            const tryAnotherWay = this.page.locator('button, div[role="button"], a')
+              .filter({ hasText: /try another way/i })
+              .first();
+
+            if (await tryAnotherWay.isVisible({ timeout: 5000 }).catch(() => false)) {
+              console.log('Clicking "Try another way"...');
+              await tryAnotherWay.click({ force: true });
+              await this.page.waitForTimeout(1000);
+            }
+
+            // Click the Authenticator option from the list of options
+            const authOption = this.page.locator('li, div[role="link"], div[role="button"], button')
+              .filter({ hasText: /authenticator/i })
+              .first();
+
+            if (await authOption.isVisible({ timeout: 6000 }).catch(() => false)) {
+              console.log('Clicking "Google Authenticator" option...');
+              await authOption.click({ force: true });
             }
           }
 
           // Locate the TOTP pin input on the Authenticator challenge screen
-          const pinInput = this.page.locator('input[type="tel"], #totpPin, input[name="totpPin"]').first();
-          await pinInput.waitFor({ state: 'visible', timeout: 15000 });
+          if (await pinLocator.isVisible({ timeout: 15000 }).catch(() => false)) {
+            // Generate the live 6-digit TOTP code
+            const totp = new OTPAuth.TOTP({
+              secret: process.env.SF_TOTP_SECRET.replace(/\s+/g, ''),
+            });
+            const token = totp.generate();
+            console.log(`Generated and entering TOTP 2FA code: ${token}`);
 
-          // Generate the live 6-digit TOTP code
-          const totp = new OTPAuth.TOTP({
-            secret: process.env.SF_TOTP_SECRET.replace(/\s+/g, ''),
-          });
-          const token = totp.generate();
-          console.log(`Generated TOTP 2FA code: ${token}`);
+            await pinLocator.fill(token);
 
-          await pinInput.fill(token);
-
-          // Click Next
-          const nextButton = this.page.getByRole('button', { name: 'Next' })
-            .or(this.page.locator('#totpNext button, #totpNext, button[type="button"]:has-text("Next")'))
-            .first();
-          await nextButton.click();
+            // Click Next
+            const nextButton = this.page.locator('#totpNext button, #totpNext, #idvPrgNext button, button[type="button"]:has-text("Next"), button:has-text("Next")').first();
+            await nextButton.click({ force: true });
+          } else {
+            console.log('Could not find TOTP pin input. Waiting in case manual device prompt ("Yes, it\'s me") was tapped...');
+          }
         }
       } catch (e) {
         console.log('2FA handling notice:', e.message);

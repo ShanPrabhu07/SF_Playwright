@@ -4,6 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
+    "auth:refresh": "playwright test tests/setup/auth.setup.js",
+    "auth:copy": "powershell -Command \"Get-Content .auth/sf-admin.json -Raw | Set-Clipboard; Write-Host 'Copied .auth/sf-admin.json to clipboard! Paste it directly into GitHub Secret SF_STORAGE_STATE.'\"",
+    "auth:copy-b64": "powershell -Command \"[Convert]::ToBase64String([System.IO.File]::ReadAllBytes('.auth/sf-admin.json')) | Set-Clipboard; Write-Host 'Copied Base64 session to clipboard! Paste it into GitHub Secret SF_STORAGE_STATE.'\"",
     "allure:generate": "allure generate allure-results --clean -o allure-report",
     "allure:open": "allure open allure-report",
     "allure:serve": "allure serve allure-results",
