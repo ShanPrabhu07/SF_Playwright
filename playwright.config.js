@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, `config/env/.env.${environment}`) 
 export default defineConfig({
   testDir: './tests',
   retries: process.env.CI ? 0 : 0, // 0 retries in CI for fast feedback (no 10-minute retry stalls)
-  timeout: 45 * 1000, // 45 seconds timeout per test
+  timeout: 180 * 1000, // 180 seconds (3 minutes) timeout per test to allow for Paratext project sync
   workers: 1,
   reporter: [
     ['line'],
